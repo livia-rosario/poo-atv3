@@ -145,6 +145,19 @@ public class Sistema {
         return null;
     }
     
+    public boolean cpfJaExiste(String cpf) {
+        if (this.localizarCliente(cpf) != null) {
+            return true;
+        }
+        if (this.localizarVendedor(cpf) != null) {
+            return true;
+        }
+        if (this.localizarGerente(cpf) != null) {
+            return true;
+        }
+        return false;
+    }
+    
     public void atribuirVendaVendedor(Venda venda, Vendedor vendedor) {
         vendedor.addVenda(venda);
     }

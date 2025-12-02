@@ -216,13 +216,13 @@ public class Entrada {
             
             String email = this.lerEmail("Digite o email do cliente: ");
 
-            if (s.localizarCliente(cpf) == null) {
+            if (s.cpfJaExiste(cpf)) {
+                System.out.println("Erro: CPF já cadastrado no sistema. Cliente não adicionado.");
+            }
+            else {
                 Cliente c = new Cliente(nome, cpf, dia, mes, ano, email);
                 s.adicionar(c);
                 System.out.println("Cliente cadastrado com sucesso!");
-            }
-            else {
-                System.out.println("Erro: CPF duplicado. Cliente não adicionado.");
             }
         } catch (Exception e) {
             System.out.println("Erro ao cadastrar cliente: " + e.getMessage());
@@ -260,13 +260,13 @@ public class Entrada {
                 comissao = this.lerDoublePositivo("Digite o percentual de comissão deste vendedor: ");
             }
 
-            if (s.localizarVendedor(cpf) == null) {
+            if (s.cpfJaExiste(cpf)) {
+                System.out.println("Erro: CPF já cadastrado no sistema. Vendedor não adicionado.");
+            }
+            else {
                 Vendedor v = new Vendedor(nome, cpf, dia, mes, ano, salario, comissao);
                 s.adicionar(v);
                 System.out.println("Vendedor cadastrado com sucesso!");
-            }
-            else {
-                System.out.println("Erro: CPF duplicado. Vendedor não adicionado.");
             }
         } catch (Exception e) {
             System.out.println("Erro ao cadastrar vendedor: " + e.getMessage());
@@ -299,13 +299,13 @@ public class Entrada {
             double salario = this.lerDoublePositivo("Digite o salário mensal fixo do gerente: ");
             String senha = this.lerLinhaObrigatoria("Digite a senha do gerente: ");
 
-            if (s.localizarGerente(cpf) == null) {
+            if (s.cpfJaExiste(cpf)) {
+                System.out.println("Erro: CPF já cadastrado no sistema. Gerente não adicionado.");
+            }
+            else {
                 Gerente g = new Gerente(nome, cpf, dia, mes, ano, salario, senha);
                 s.adicionar(g);
                 System.out.println("Gerente cadastrado com sucesso!");
-            }
-            else {
-                System.out.println("Erro: CPF duplicado. Gerente não adicionado.");
             }
         } catch (Exception e) {
             System.out.println("Erro ao cadastrar gerente: " + e.getMessage());
