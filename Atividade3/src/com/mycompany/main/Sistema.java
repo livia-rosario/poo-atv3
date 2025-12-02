@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -108,6 +109,9 @@ public class Sistema {
     }
 
     public Cliente localizarCliente(String cpf) {
+        if (cpf == null || cpf.trim().isEmpty()) {
+            return null;
+        }
         for (Cliente c : this.clientes) {
             if (c.getCpf().equals(cpf)) {
                 return c;
@@ -117,6 +121,9 @@ public class Sistema {
     }   
     
     public Gerente localizarGerente(String cpf) {
+        if (cpf == null || cpf.trim().isEmpty()) {
+            return null;
+        }
         for (Gerente g : this.gerentes) {
             if (g.getCpf().equals(cpf)) {
                 return g;
@@ -126,6 +133,9 @@ public class Sistema {
     }
     
     public Vendedor localizarVendedor(String cpf) {
+        if (cpf == null || cpf.trim().isEmpty()) {
+            return null;
+        }
         for (Vendedor v : this.vendedores) {
             if (v.getCpf().equals(cpf)) {
                 return v;
@@ -135,10 +145,15 @@ public class Sistema {
     }
     
     public Venda localizarChassi(String chassi) {
+        if (chassi == null || chassi.trim().isEmpty()) {
+            return null;
+        }
         for (Vendedor v : this.vendedores) {
-            for (Venda venda : v.getVendidos()) {
-                if (venda.getChassi().equals(chassi)) {
-                    return venda;
+            if (v.getVendidos() != null) {
+                for (Venda venda : v.getVendidos()) {
+                    if (venda.getChassi().equals(chassi)) {
+                        return venda;
+                    }
                 }
             }
         }
@@ -146,6 +161,9 @@ public class Sistema {
     }
     
     public boolean cpfJaExiste(String cpf) {
+        if (cpf == null || cpf.trim().isEmpty()) {
+            return false;
+        }
         if (this.localizarCliente(cpf) != null) {
             return true;
         }
@@ -159,24 +177,35 @@ public class Sistema {
     }
     
     public void atribuirVendaVendedor(Venda venda, Vendedor vendedor) {
-        vendedor.addVenda(venda);
+        if (venda != null && vendedor != null) {
+            vendedor.addVenda(venda);
+        }
     }
     
     public void relatorio(int mes, int ano) {
         System.out.println("*** RELATÓRIO DE VENDAS MENSAL DE " + mes + "/" + ano + " ***");
         double total = 0;
+        int contadorVendas = 0;
         
         for (Vendedor v: vendedores) {
-            for (Venda venda : v.getVendidos()) {
-                if (venda.getData().getAno() == ano && venda.getData().getMes() == mes) {
-                    System.out.println("Vendedor " + v.getNome() + "(Salário "
-                            + "neste mês: R$" + v.getSalario(mes, ano) + ")");
-                    System.out.println(venda);
-                    System.out.println("***************************************");
-                    total = total + (venda.valor());
+            if (v.getVendidos() != null) {
+                for (Venda venda : v.getVendidos()) {
+                    if (venda.getData().getAno() == ano && venda.getData().getMes() == mes) {
+                        System.out.println("Vendedor " + v.getNome() + "(Salário "
+                                + "neste mês: R$" + v.getSalario(mes, ano) + ")");
+                        System.out.println(venda);
+                        System.out.println("***************************************");
+                        total = total + (venda.valor());
+                        contadorVendas++;
+                    }
                 }
             }
         }
+        
+        if (contadorVendas == 0) {
+            System.out.println("Nenhuma venda encontrada neste período.");
+        }
+        
         System.out.println("Total: R$ " + total);
     }
     
@@ -187,11 +216,19 @@ public class Sistema {
         List<Venda> todasVendas = new ArrayList<>();
         
         for (Vendedor v: vendedores) {
-            for (Venda venda: v.getVendidos()) {
-                if (venda.getData().getAno() == ano) {
-                    todasVendas.add(venda);
+            if (v.getVendidos() != null) {
+                for (Venda venda: v.getVendidos()) {
+                    if (venda.getData().getAno() == ano) {
+                        todasVendas.add(venda);
+                    }
                 }
             }
+        }
+        
+        if (todasVendas.isEmpty()) {
+            System.out.println("Nenhuma venda encontrada neste ano.");
+            System.out.println("Total: R$ 0.0");
+            return;
         }
         
         Collections.sort(todasVendas, new ComparadorVenda());
@@ -210,6 +247,12 @@ public class Sistema {
         System.out.println("*** RELATÓRIO DE VENDAS DO VENDEDOR ***");
         System.out.println("Vendas do vendedor " + vendedor.getNome() + " :");
         double total = 0;
+        
+        if (vendedor.getVendidos() == null || vendedor.getVendidos().isEmpty()) {
+            System.out.println("Este vendedor ainda não realizou nenhuma venda.");
+            System.out.println("Total: R$ 0.0");
+            return;
+        }
         
         for (Venda venda: vendedor.getVendidos()) {
             System.out.println(venda);
@@ -254,7 +297,7 @@ public class Sistema {
                 buff.write(v.getNasc().getDia() + "\n");
                 buff.write(v.getNasc().getMes() + "\n");
                 buff.write(v.getNasc().getAno() + "\n");
-                buff.write(v.getSalario(1, 2025) - v.comissaoTotal(1, 2025) + "\n");
+                buff.write((v.getSalario(1, 2025) - v.comissaoTotal(1, 2025)) + "\n");
                 buff.write(v.getComissao() + "\n");
             }
             
@@ -300,23 +343,27 @@ public class Sistema {
             
             int totalVendas = 0;
             for (Vendedor v : vendedores) {
-                totalVendas += v.getVendidos().size();
+                if (v.getVendidos() != null) {
+                    totalVendas += v.getVendidos().size();
+                }
             }
             
             buff.write(totalVendas + "\n");
             for (Vendedor v : vendedores) {
-                for (Venda venda : v.getVendidos()) {
-                    buff.write(v.getCpf() + "\n");
-                    buff.write(venda.getCliente().getCpf() + "\n");
-                    
-                    int indiceVeiculo = veiculos.indexOf(venda.getVeiculo());
-                    buff.write(indiceVeiculo + "\n");
-                    
-                    buff.write(venda.getDesconto() + "\n");
-                    buff.write(venda.getData().getDia() + "\n");
-                    buff.write(venda.getData().getMes() + "\n");
-                    buff.write(venda.getData().getAno() + "\n");
-                    buff.write(venda.getChassi() + "\n");
+                if (v.getVendidos() != null) {
+                    for (Venda venda : v.getVendidos()) {
+                        buff.write(v.getCpf() + "\n");
+                        buff.write(venda.getCliente().getCpf() + "\n");
+                        
+                        int indiceVeiculo = veiculos.indexOf(venda.getVeiculo());
+                        buff.write(indiceVeiculo + "\n");
+                        
+                        buff.write(venda.getDesconto() + "\n");
+                        buff.write(venda.getData().getDia() + "\n");
+                        buff.write(venda.getData().getMes() + "\n");
+                        buff.write(venda.getData().getAno() + "\n");
+                        buff.write(venda.getChassi() + "\n");
+                    }
                 }
             }
             
@@ -423,20 +470,29 @@ public class Sistema {
                 
                 Vendedor vend = localizarVendedor(cpfVendedor);
                 Cliente cli = localizarCliente(cpfCliente);
-                Veiculo vei = veiculos.get(indiceVeiculo);
                 
-                Venda venda = new Venda(vei, cli, desconto, new Data(dia, mes, ano), chassi, vend);
-                vend.addVenda(venda);
+                if (indiceVeiculo >= 0 && indiceVeiculo < veiculos.size()) {
+                    Veiculo vei = veiculos.get(indiceVeiculo);
+                    
+                    if (vend != null && cli != null) {
+                        Venda venda = new Venda(vei, cli, desconto, new Data(dia, mes, ano), chassi, vend);
+                        vend.addVenda(venda);
+                    }
+                }
             }
             
+            System.out.println("Dados carregados com sucesso!");
+            
+        } catch (FileNotFoundException e) {
+            System.out.println("Nenhum dado anterior encontrado. Sistema iniciado vazio.");
         } catch (IOException e) {
-            System.out.println("Nenhum dado anterior encontrado. Iniciando sistema vazio.");
+            System.out.println("Erro ao ler arquivo: " + e.getMessage());
         } catch (NumberFormatException e) {
-            System.out.println("Erro ao ler dados: formato inválido.");
+            System.out.println("Erro ao ler dados: formato inválido no arquivo.");
         } catch (NullPointerException e) {
             System.out.println("Erro ao ler dados: referência nula encontrada.");
         } catch (IndexOutOfBoundsException e) {
-            System.out.println("Erro ao ler dados: índice inválido.");
+            System.out.println("Erro ao ler dados: índice inválido no arquivo.");
         } finally {
             if (buff != null) {
                 try {
@@ -452,11 +508,13 @@ public class Sistema {
 class ComparadorVenda implements Comparator<Venda> {
     @Override
     public int compare(Venda v1, Venda v2) {
+        // 1. Ordem alfabética por nome do vendedor
         int comparaNome = v1.getVendedor().getNome().compareTo(v2.getVendedor().getNome());
         if (comparaNome != 0) {
             return comparaNome;
         }
         
+        // 2. Maior valor primeiro (ordem decrescente)
         if (v1.valor() > v2.valor()) {
             return -1;
         }
@@ -464,11 +522,13 @@ class ComparadorVenda implements Comparator<Venda> {
             return 1;
         }
         
+        // 3. Mais recente primeiro (ordem decrescente de data)
         int comparaData = v2.getData().compareTo(v1.getData());
         if (comparaData != 0) {
             return comparaData;
         }
         
+        // 4. Por CPF do comprador (ordem crescente)
         return v1.getCliente().getCpf().compareTo(v2.getCliente().getCpf());
     }
 }

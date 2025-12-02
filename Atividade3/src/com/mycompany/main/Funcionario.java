@@ -10,6 +10,10 @@ public abstract class Funcionario extends Pessoa {
 
     public abstract double getSalario(int mes, int ano);
     
+    public double getSalarioBase() {
+        return salario;
+    }
+    
     @Override
     public String toString() {
         return getNome() + " - CPF: " + getCpf();

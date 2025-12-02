@@ -2,37 +2,56 @@ package com.mycompany.main;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.time.LocalDate;
 import java.util.Scanner;
 
 public class Entrada {
     public Scanner input;
+    private boolean lendoDeArquivo;
 
     public Entrada() {
         try {
             this.input = new Scanner(new FileInputStream("input.txt"));
+            this.lendoDeArquivo = true;
         } catch (FileNotFoundException e) {
             this.input = new Scanner(System.in);
+            this.lendoDeArquivo = false;
         }
     }
 
-    private String lerLinha(String msg) {
-        System.out.print(msg);
-        String linha = this.input.nextLine();
+private String lerLinha(String msg) {
 
-        try {
-            while (linha.length() > 0 && linha.charAt(0) == '#') {
-                linha = this.input.nextLine();
-            }
-        } catch (StringIndexOutOfBoundsException e) {
-            linha = "";
+    
+    System.out.print(msg);
+
+    
+    if (!input.hasNextLine()) {
+        if (lendoDeArquivo) {
+            input.close();
+            input = new Scanner(System.in);
+            lendoDeArquivo = false;
         }
-        return linha;
     }
+
+    String linha = input.nextLine();
+
+    // Ignora linhas que começam com '#'
+    while (linha != null && linha.trim().startsWith("#")) {
+        if (!input.hasNextLine()) return "";
+        linha = input.nextLine();
+    }
+
+    return linha;
+}
+
 
     private int lerInteiro(String msg) {
         while (true) {
             try {
                 String linha = this.lerLinha(msg);
+                if (linha.isEmpty() && !input.hasNextLine()) {
+                    return 0;
+                }
                 int valor = Integer.parseInt(linha);
                 return valor;
             } catch (NumberFormatException e) {
@@ -45,6 +64,9 @@ public class Entrada {
         while (true) {
             try {
                 String linha = this.lerLinha(msg);
+                if (linha.isEmpty() && !input.hasNextLine()) {
+                    return 1;
+                }
                 int valor = Integer.parseInt(linha);
                 if (valor <= 0) {
                     System.out.println("Erro: o valor deve ser positivo. Tente novamente.");
@@ -61,6 +83,9 @@ public class Entrada {
         while (true) {
             try {
                 String linha = this.lerLinha(msg);
+                if (linha.isEmpty() && !input.hasNextLine()) {
+                    return 0.0;
+                }
                 double valor = Double.parseDouble(linha);
                 return valor;
             } catch (NumberFormatException e) {
@@ -73,6 +98,9 @@ public class Entrada {
         while (true) {
             try {
                 String linha = this.lerLinha(msg);
+                if (linha.isEmpty() && !input.hasNextLine()) {
+                    return 0.0;
+                }
                 double valor = Double.parseDouble(linha);
                 if (valor < 0) {
                     System.out.println("Erro: o valor não pode ser negativo. Tente novamente.");
@@ -89,6 +117,9 @@ public class Entrada {
         while (true) {
             String linha = this.lerLinha(msg);
             if (linha == null || linha.trim().isEmpty()) {
+                if (!input.hasNextLine()) {
+                    return "";
+                }
                 System.out.println("Erro: este campo não pode estar vazio. Tente novamente.");
                 continue;
             }
@@ -99,6 +130,10 @@ public class Entrada {
     private String lerCPF(String msg) {
         while (true) {
             String cpf = this.lerLinhaObrigatoria(msg);
+            
+            if (cpf.isEmpty()) {
+                return "00000000000";
+            }
             
             String cpfLimpo = cpf.replaceAll("[^0-9]", "");
             
@@ -127,6 +162,10 @@ public class Entrada {
     private String lerEmail(String msg) {
         while (true) {
             String email = this.lerLinhaObrigatoria(msg);
+            
+            if (email.isEmpty()) {
+                return "email@exemplo.com";
+            }
             
             boolean temArroba = false;
             int posArroba = -1;
@@ -166,6 +205,11 @@ public class Entrada {
             
             return email;
         }
+    }
+    
+    private Data obterDataAtual() {
+        LocalDate hoje = LocalDate.now();
+        return new Data(hoje.getDayOfMonth(), hoje.getMonthValue(), hoje.getYear());
     }
 
     public int menu() {
@@ -209,9 +253,18 @@ public class Entrada {
                 ano = this.lerInteiroPositivo("Digite o ano do nascimento do cliente: ");
             }
             
-            while (ano < 1900 || ano > 2024) {
-                System.out.println("Erro: ano inválido (deve estar entre 1900 e 2024).");
+            int anoAtual = LocalDate.now().getYear();
+            while (ano < 1900 || ano > anoAtual) {
+                System.out.println("Erro: ano inválido (deve estar entre 1900 e " + anoAtual + ").");
                 ano = this.lerInteiroPositivo("Digite o ano do nascimento do cliente: ");
+            }
+            
+            Data nascimento = new Data(dia, mes, ano);
+            Data hoje = obterDataAtual();
+            
+            if (nascimento.compareTo(hoje) > 0) {
+                System.out.println("Erro: data de nascimento não pode ser futura!");
+                return;
             }
             
             String email = this.lerEmail("Digite o email do cliente: ");
@@ -247,9 +300,18 @@ public class Entrada {
                 ano = this.lerInteiroPositivo("Digite o ano do nascimento do vendedor: ");
             }
             
-            while (ano < 1900 || ano > 2024) {
-                System.out.println("Erro: ano inválido (deve estar entre 1900 e 2024).");
+            int anoAtual = LocalDate.now().getYear();
+            while (ano < 1900 || ano > anoAtual) {
+                System.out.println("Erro: ano inválido (deve estar entre 1900 e " + anoAtual + ").");
                 ano = this.lerInteiroPositivo("Digite o ano do nascimento do vendedor: ");
+            }
+            
+            Data nascimento = new Data(dia, mes, ano);
+            Data hoje = obterDataAtual();
+            
+            if (nascimento.compareTo(hoje) > 0) {
+                System.out.println("Erro: data de nascimento não pode ser futura!");
+                return;
             }
             
             double salario = this.lerDoublePositivo("Digite o salário mensal fixo do vendedor: ");
@@ -291,13 +353,26 @@ public class Entrada {
                 ano = this.lerInteiroPositivo("Digite o ano do nascimento do gerente: ");
             }
             
-            while (ano < 1900 || ano > 2024) {
-                System.out.println("Erro: ano inválido (deve estar entre 1900 e 2024).");
+            int anoAtual = LocalDate.now().getYear();
+            while (ano < 1900 || ano > anoAtual) {
+                System.out.println("Erro: ano inválido (deve estar entre 1900 e " + anoAtual + ").");
                 ano = this.lerInteiroPositivo("Digite o ano do nascimento do gerente: ");
+            }
+            
+            Data nascimento = new Data(dia, mes, ano);
+            Data hoje = obterDataAtual();
+            
+            if (nascimento.compareTo(hoje) > 0) {
+                System.out.println("Erro: data de nascimento não pode ser futura!");
+                return;
             }
             
             double salario = this.lerDoublePositivo("Digite o salário mensal fixo do gerente: ");
             String senha = this.lerLinhaObrigatoria("Digite a senha do gerente: ");
+            
+            if (senha.length() < 4) {
+                System.out.println("Aviso: senha muito curta. Recomenda-se no mínimo 4 caracteres.");
+            }
 
             if (s.cpfJaExiste(cpf)) {
                 System.out.println("Erro: CPF já cadastrado no sistema. Gerente não adicionado.");
@@ -319,9 +394,12 @@ public class Entrada {
             String marca = this.lerLinhaObrigatoria("Digite a Marca do veículo: ");
             String modelo = this.lerLinhaObrigatoria("Digite o Modelo do veículo: ");
             
+            int anoAtual = LocalDate.now().getYear();
+            int mesAtual = LocalDate.now().getMonthValue();
+            
             int anoFab = this.lerInteiroPositivo("Digite o ano de fabricação do veículo: ");
-            while (anoFab < 1900 || anoFab > 2025) {
-                System.out.println("Erro: ano de fabricação inválido (deve estar entre 1900 e 2025).");
+            while (anoFab < 1900 || anoFab > anoAtual) {
+                System.out.println("Erro: ano de fabricação inválido (deve estar entre 1900 e " + anoAtual + ").");
                 anoFab = this.lerInteiroPositivo("Digite o ano de fabricação do veículo: ");
             }
             
@@ -331,9 +409,14 @@ public class Entrada {
                 mesFab = this.lerInteiroPositivo("Digite o mês de fabricação do veículo: ");
             }
             
+            if (anoFab == anoAtual && mesFab > mesAtual) {
+                System.out.println("Erro: mês de fabricação não pode ser futuro!");
+                return;
+            }
+            
             int anoMod = this.lerInteiroPositivo("Digite o ano do modelo do veículo: ");
-            while (anoMod < anoFab || anoMod > 2026) {
-                System.out.println("Erro: ano do modelo inválido (deve ser >= ano de fabricação e <= 2026).");
+            while (anoMod < anoFab || anoMod > (anoFab + 1)) {
+                System.out.println("Erro: ano do modelo deve ser igual ao ano de fabricação ou no máximo 1 ano posterior.");
                 anoMod = this.lerInteiroPositivo("Digite o ano do modelo do veículo: ");
             }
             
@@ -460,16 +543,34 @@ public class Entrada {
                 ano = this.lerInteiroPositivo("Digite o ano da venda: ");
             }
             
-            while (ano < 2000 || ano > 2025) {
-                System.out.println("Erro: ano inválido (deve estar entre 2000 e 2025).");
+            int anoAtual = LocalDate.now().getYear();
+            while (ano < 2000 || ano > anoAtual) {
+                System.out.println("Erro: ano inválido (deve estar entre 2000 e " + anoAtual + ").");
                 ano = this.lerInteiroPositivo("Digite o ano da venda: ");
             }
             
             Data dataVenda = new Data(dia, mes, ano);
+            Data hoje = obterDataAtual();
+            
+            if (dataVenda.compareTo(hoje) > 0) {
+                System.out.println("Erro: data de venda não pode ser futura!");
+                return;
+            }
+            
             Data dataFabricacao = new Data(1, vei.getMesFab(), vei.getAnoFab());
             
             if (dataVenda.compareTo(dataFabricacao) < 0) {
                 System.out.println("Erro: data de venda não pode ser anterior à fabricação do veículo!");
+                return;
+            }
+            
+            if (dataVenda.compareTo(cli.getNasc()) <= 0) {
+                System.out.println("Erro: data de venda não pode ser anterior ou igual ao nascimento do cliente!");
+                return;
+            }
+            
+            if (dataVenda.compareTo(vend.getNasc()) <= 0) {
+                System.out.println("Erro: data de venda não pode ser anterior ou igual ao nascimento do vendedor!");
                 return;
             }
             
@@ -496,10 +597,18 @@ public class Entrada {
                 mes = this.lerInteiroPositivo("Digite o mês: ");
             }
             
+            int anoAtual = LocalDate.now().getYear();
             int ano = this.lerInteiroPositivo("Digite o ano: ");
-            while (ano < 2000 || ano > 2025) {
-                System.out.println("Erro: ano inválido (deve estar entre 2000 e 2025).");
+            while (ano < 2000 || ano > anoAtual) {
+                System.out.println("Erro: ano inválido (deve estar entre 2000 e " + anoAtual + ").");
                 ano = this.lerInteiroPositivo("Digite o ano: ");
+            }
+            
+            Data dataConsulta = new Data(1, mes, ano);
+            Data hoje = obterDataAtual();
+            
+            if (dataConsulta.compareTo(hoje) > 0) {
+                System.out.println("Aviso: período solicitado é futuro. Relatório pode estar vazio.");
             }
             
             s.relatorio(mes, ano);
@@ -510,9 +619,10 @@ public class Entrada {
 
     private void relatorioAnual(Sistema s) {
         try {
+            int anoAtual = LocalDate.now().getYear();
             int ano = this.lerInteiroPositivo("Digite o ano: ");
-            while (ano < 2000 || ano > 2025) {
-                System.out.println("Erro: ano inválido (deve estar entre 2000 e 2025).");
+            while (ano < 2000 || ano > anoAtual) {
+                System.out.println("Erro: ano inválido (deve estar entre 2000 e " + anoAtual + ").");
                 ano = this.lerInteiroPositivo("Digite o ano: ");
             }
             

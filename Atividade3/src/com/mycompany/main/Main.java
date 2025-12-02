@@ -2,11 +2,15 @@ package com.mycompany.main;
 
 public class Main {
     public static void main(String[] args) {
+        System.out.println("========================================");
+        System.out.println("   SISTEMA DE CONCESSIONÁRIA DE VEÍCULOS");
+        System.out.println("========================================");
+        System.out.println();
+        
         Entrada io = new Entrada();
         Sistema s = new Sistema();
         
         s.carregarDados();
-        System.out.println("Dados carregados com sucesso!");
 
         int op = io.menu();
 
@@ -41,8 +45,10 @@ public class Main {
             op = io.menu();
         }
         
+        System.out.println();
+        System.out.println("Encerrando sistema...");
         s.salvarDados();
         System.out.println("Dados salvos com sucesso!");
-        System.out.println("Sistema encerrado.");
+        System.out.println("Até logo!");
     }
 }
