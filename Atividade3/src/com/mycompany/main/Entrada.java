@@ -3,6 +3,9 @@ package com.mycompany.main;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
 import java.util.Scanner;
 
 public class Entrada {
@@ -141,6 +144,7 @@ private String lerLinha(String msg) {
                 System.out.println("Erro: CPF deve conter 11 dígitos. Tente novamente.");
                 continue;
             }
+
             
             boolean todosIguais = true;
             for (int i = 1; i < cpfLimpo.length(); i++) {
@@ -241,42 +245,59 @@ private String lerLinha(String msg) {
 
             String nome = this.lerLinhaObrigatoria("Digite o nome do cliente: ");
             String cpf = this.lerCPF("Digite o cpf do cliente: ");
-            
-            int dia = this.lerInteiroPositivo("Digite o dia do nascimento do cliente: ");
-            int mes = this.lerInteiroPositivo("Digite o mês do nascimento do cliente: ");
-            int ano = this.lerInteiroPositivo("Digite o ano do nascimento do cliente: ");
-            
-            while (!Data.validarData(dia, mes, ano)) {
-                System.out.println("Erro: data inválida. Tente novamente.");
-                dia = this.lerInteiroPositivo("Digite o dia do nascimento do cliente: ");
-                mes = this.lerInteiroPositivo("Digite o mês do nascimento do cliente: ");
-                ano = this.lerInteiroPositivo("Digite o ano do nascimento do cliente: ");
+
+            LocalDate nascimento = null;
+
+            DateTimeFormatter fmt = DateTimeFormatter
+                    .ofPattern("dd/MM/uuuu")     
+                    .withResolverStyle(ResolverStyle.STRICT); 
+
+            while (true) {
+                String dataString = this.lerLinhaObrigatoria(
+                    "Digite a data de nascimento do cliente (dd/mm/aaaa): "
+                );
+
+                try {
+                    nascimento = LocalDate.parse(dataString, fmt);
+
+                    int ano = nascimento.getYear();
+                    int anoAtual = LocalDate.now().getYear();
+
+                    if (ano < 1900 || ano > anoAtual) {
+                        System.out.println("Erro: ano inválido (entre 1900 e " + anoAtual + ").");
+                        continue;
+                    }
+
+                    if (nascimento.isAfter(LocalDate.now())) {
+                        System.out.println("Erro: a data de nascimento não pode ser futura!");
+                        continue;
+                    }
+
+                    break; 
+
+                } catch (DateTimeParseException e) {
+                    System.out.println("Erro: data inválida! Use o formato dd/mm/aaaa.");
+                }
             }
-            
-            int anoAtual = LocalDate.now().getYear();
-            while (ano < 1900 || ano > anoAtual) {
-                System.out.println("Erro: ano inválido (deve estar entre 1900 e " + anoAtual + ").");
-                ano = this.lerInteiroPositivo("Digite o ano do nascimento do cliente: ");
-            }
-            
-            Data nascimento = new Data(dia, mes, ano);
-            Data hoje = obterDataAtual();
-            
-            if (nascimento.compareTo(hoje) > 0) {
-                System.out.println("Erro: data de nascimento não pode ser futura!");
-                return;
-            }
-            
+
             String email = this.lerEmail("Digite o email do cliente: ");
 
             if (s.cpfJaExiste(cpf)) {
                 System.out.println("Erro: CPF já cadastrado no sistema. Cliente não adicionado.");
-            }
-            else {
-                Cliente c = new Cliente(nome, cpf, dia, mes, ano, email);
+            } else {
+                Cliente c = new Cliente(
+                    nome,
+                    cpf,
+                    nascimento.getDayOfMonth(),
+                    nascimento.getMonthValue(),
+                    nascimento.getYear(),
+                    email
+                );
+
                 s.adicionar(c);
                 System.out.println("Cliente cadastrado com sucesso!");
             }
+
         } catch (Exception e) {
             System.out.println("Erro ao cadastrar cliente: " + e.getMessage());
         }
@@ -288,35 +309,44 @@ private String lerLinha(String msg) {
 
             String nome = this.lerLinhaObrigatoria("Digite o nome do vendedor: ");
             String cpf = this.lerCPF("Digite o cpf do vendedor: ");
-            
-            int dia = this.lerInteiroPositivo("Digite o dia do nascimento do vendedor: ");
-            int mes = this.lerInteiroPositivo("Digite o mês do nascimento do vendedor: ");
-            int ano = this.lerInteiroPositivo("Digite o ano do nascimento do vendedor: ");
-            
-            while (!Data.validarData(dia, mes, ano)) {
-                System.out.println("Erro: data inválida. Tente novamente.");
-                dia = this.lerInteiroPositivo("Digite o dia do nascimento do vendedor: ");
-                mes = this.lerInteiroPositivo("Digite o mês do nascimento do vendedor: ");
-                ano = this.lerInteiroPositivo("Digite o ano do nascimento do vendedor: ");
+
+            LocalDate nascimento = null;
+
+            DateTimeFormatter fmt = DateTimeFormatter
+                .ofPattern("dd/MM/uuuu")
+                .withResolverStyle(ResolverStyle.STRICT);
+
+            while (true) {
+                String dataString = this.lerLinhaObrigatoria(
+                    "Digite a data de nascimento do vendedor (dd/mm/aaaa): "
+                );
+
+                try {
+                    nascimento = LocalDate.parse(dataString, fmt);
+
+                    int ano = nascimento.getYear();
+                    int anoAtual = LocalDate.now().getYear();
+
+                    if (ano < 1900 || ano > anoAtual) {
+                        System.out.println("Erro: ano inválido (entre 1900 e " + anoAtual + ").");
+                        continue;
+                    }
+
+                    if (nascimento.isAfter(LocalDate.now())) {
+                        System.out.println("Erro: a data de nascimento não pode ser futura!");
+                        continue;
+                    }
+
+                    break;
+
+                } catch (DateTimeParseException e) {
+                    System.out.println("Erro: data inválida! Use o formato dd/mm/aaaa.");
+                }
             }
-            
-            int anoAtual = LocalDate.now().getYear();
-            while (ano < 1900 || ano > anoAtual) {
-                System.out.println("Erro: ano inválido (deve estar entre 1900 e " + anoAtual + ").");
-                ano = this.lerInteiroPositivo("Digite o ano do nascimento do vendedor: ");
-            }
-            
-            Data nascimento = new Data(dia, mes, ano);
-            Data hoje = obterDataAtual();
-            
-            if (nascimento.compareTo(hoje) > 0) {
-                System.out.println("Erro: data de nascimento não pode ser futura!");
-                return;
-            }
-            
+
             double salario = this.lerDoublePositivo("Digite o salário mensal fixo do vendedor: ");
             double comissao = this.lerDoublePositivo("Digite o percentual de comissão deste vendedor: ");
-            
+
             while (comissao > 100) {
                 System.out.println("Erro: comissão não pode ser maior que 100%.");
                 comissao = this.lerDoublePositivo("Digite o percentual de comissão deste vendedor: ");
@@ -324,12 +354,21 @@ private String lerLinha(String msg) {
 
             if (s.cpfJaExiste(cpf)) {
                 System.out.println("Erro: CPF já cadastrado no sistema. Vendedor não adicionado.");
-            }
-            else {
-                Vendedor v = new Vendedor(nome, cpf, dia, mes, ano, salario, comissao);
+            } else {
+                Vendedor v = new Vendedor(
+                    nome,
+                    cpf,
+                    nascimento.getDayOfMonth(),
+                    nascimento.getMonthValue(),
+                    nascimento.getYear(),
+                    salario,
+                    comissao
+                );
+
                 s.adicionar(v);
                 System.out.println("Vendedor cadastrado com sucesso!");
             }
+
         } catch (Exception e) {
             System.out.println("Erro ao cadastrar vendedor: " + e.getMessage());
         }
@@ -341,52 +380,70 @@ private String lerLinha(String msg) {
 
             String nome = this.lerLinhaObrigatoria("Digite o nome do gerente: ");
             String cpf = this.lerCPF("Digite o cpf do gerente: ");
-            
-            int dia = this.lerInteiroPositivo("Digite o dia do nascimento do gerente: ");
-            int mes = this.lerInteiroPositivo("Digite o mês do nascimento do gerente: ");
-            int ano = this.lerInteiroPositivo("Digite o ano do nascimento do gerente: ");
-            
-            while (!Data.validarData(dia, mes, ano)) {
-                System.out.println("Erro: data inválida. Tente novamente.");
-                dia = this.lerInteiroPositivo("Digite o dia do nascimento do gerente: ");
-                mes = this.lerInteiroPositivo("Digite o mês do nascimento do gerente: ");
-                ano = this.lerInteiroPositivo("Digite o ano do nascimento do gerente: ");
+
+            LocalDate nascimento = null;
+
+            DateTimeFormatter fmt = DateTimeFormatter
+                .ofPattern("dd/MM/uuuu")
+                .withResolverStyle(ResolverStyle.STRICT);
+
+            while (true) {
+                String dataString = this.lerLinhaObrigatoria(
+                    "Digite a data de nascimento do gerente (dd/mm/aaaa): "
+                );
+
+                try {
+                    nascimento = LocalDate.parse(dataString, fmt);
+
+                    int ano = nascimento.getYear();
+                    int anoAtual = LocalDate.now().getYear();
+
+                    if (ano < 1900 || ano > anoAtual) {
+                        System.out.println("Erro: ano inválido (entre 1900 e " + anoAtual + ").");
+                        continue;
+                    }
+
+                    if (nascimento.isAfter(LocalDate.now())) {
+                        System.out.println("Erro: a data de nascimento não pode ser futura!");
+                        continue;
+                    }
+
+                    break; // data válida
+
+                } catch (DateTimeParseException e) {
+                    System.out.println("Erro: data inválida! Use o formato dd/mm/aaaa.");
+                }
             }
-            
-            int anoAtual = LocalDate.now().getYear();
-            while (ano < 1900 || ano > anoAtual) {
-                System.out.println("Erro: ano inválido (deve estar entre 1900 e " + anoAtual + ").");
-                ano = this.lerInteiroPositivo("Digite o ano do nascimento do gerente: ");
-            }
-            
-            Data nascimento = new Data(dia, mes, ano);
-            Data hoje = obterDataAtual();
-            
-            if (nascimento.compareTo(hoje) > 0) {
-                System.out.println("Erro: data de nascimento não pode ser futura!");
-                return;
-            }
-            
+
             double salario = this.lerDoublePositivo("Digite o salário mensal fixo do gerente: ");
             String senha = this.lerLinhaObrigatoria("Digite a senha do gerente: ");
-            
+
             if (senha.length() < 4) {
                 System.out.println("Aviso: senha muito curta. Recomenda-se no mínimo 4 caracteres.");
             }
 
             if (s.cpfJaExiste(cpf)) {
                 System.out.println("Erro: CPF já cadastrado no sistema. Gerente não adicionado.");
-            }
-            else {
-                Gerente g = new Gerente(nome, cpf, dia, mes, ano, salario, senha);
+            } else {
+                Gerente g = new Gerente(
+                    nome,
+                    cpf,
+                    nascimento.getDayOfMonth(),
+                    nascimento.getMonthValue(),
+                    nascimento.getYear(),
+                    salario,
+                    senha
+                );
+
                 s.adicionar(g);
                 System.out.println("Gerente cadastrado com sucesso!");
             }
+
         } catch (Exception e) {
             System.out.println("Erro ao cadastrar gerente: " + e.getMessage());
         }
     }
-    
+        
     public void cadVeiculo(Sistema s) {
         try {
             s.listarVeiculos();
